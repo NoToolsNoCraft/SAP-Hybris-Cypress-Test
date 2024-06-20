@@ -1,0 +1,145 @@
+Cypress.on('uncaught:exception', (err, runnable) => {
+    // returning false here prevents Cypress from
+    // failing the test
+    return false
+})
+describe('Replacement Matrix test', () => {
+ it('Check if all requested products are listed for replacement', () => {
+  // Visit the page where the input element is located
+  cy.visit('https://backoffice.stg.iqos.com/backoffice/login.zul', { failOnStatusCode: false });
+ 
+  //LOGIN - Insert your Username and Password
+  cy.get('input[placeholder="Enter user name"]:visible').type("Type your username");
+  cy.get('input[placeholder="Enter password"]:visible').type("Type your password");
+  
+  //You should end up on the Products page after this
+  cy.get('.login_btn').click()
+	.wait(30000);
+  cy.get('.yw-selector-btn').click()
+    .wait(20000);
+  cy.get('span.z-label')
+	.contains("Products")
+	.click()
+	.wait(300);
+	
+	//Instructions for checking the product replacement level:
+  //Level 1 products: .should('contain', 'CAN_BE_REPLACED_BY ->')
+  //Level 2 products: .should('contain', 'CAN_BE_REPLACED_BY_2L ->')
+  //Level 3 products: .should('contain', 'CAN_BE_REPLACED_BY_3L ->')
+
+  //Product 1
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(3).should('be.visible').type("G0000605",{ force: true }).wait(300);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click().wait(300);
+  cy.get('span.yw-coll-browser-hyperlink').contains("Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem')
+    .contains("G0000605")
+    .should('contain', 'CAN_BE_REPLACED_BY ->');
+  cy.get('.z-listitem') 
+    .contains("G0000607")
+    .should('contain', 'CAN_BE_REPLACED_BY ->');
+  cy.get('.z-listitem') 
+    .contains("G0000608")
+    .should('contain', 'CAN_BE_REPLACED_BY ->');
+  cy.get('.z-listitem') 
+    .contains("G0000604")
+    .should('contain', 'CAN_BE_REPLACED_BY ->');
+  cy.get('.z-listitem') 
+    .contains("G0000592")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+	
+	
+  //Product 2
+  cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+  cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(5).click().type("G0000606").wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('span.yw-coll-browser-hyperlink').contains("Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem')
+    .contains("G0000606")
+    .should('contain', 'CAN_BE_REPLACED_BY ->');
+  cy.get('.z-listitem') 
+    .contains("G0000607")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000608")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000604")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000592")
+    .should('contain', 'CAN_BE_REPLACED_BY_3L ->');
+	
+	
+  //Product 3
+  cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+  cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(5).click().type("G0000607").wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('span.yw-coll-browser-hyperlink').contains("Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem')
+    .contains("G0000605")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000607")
+    .should('contain', 'CAN_BE_REPLACED_BY ->');
+  cy.get('.z-listitem') 
+    .contains("G0000608")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000604")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000593")
+    .should('contain', 'CAN_BE_REPLACED_BY_3L ->');
+  
+  
+  //Product 4
+  cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+  cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(5).click().type("G0000625").wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('span.yw-coll-browser-hyperlink').contains("Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem') 
+    .contains("G0000622")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000623")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000624")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000626")
+    .should('contain', 'CAN_BE_REPLACED_BY_2L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000600")
+    .should('contain', 'CAN_BE_REPLACED_BY_3L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000601")
+    .should('contain', 'CAN_BE_REPLACED_BY_3L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000602")
+    .should('contain', 'CAN_BE_REPLACED_BY_3L ->');
+  cy.get('.z-listitem') 
+    .contains("G0000599")
+    .should('contain', 'CAN_BE_REPLACED_BY_3L ->');
+
+ });
+});
