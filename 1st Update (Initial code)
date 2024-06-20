@@ -1,0 +1,120 @@
+Cypress.on('uncaught:exception', (err, runnable) => {
+    // returning false here prevents Cypress from
+    // failing the test
+    return false
+})
+describe('Replacement Matrix test', () => {
+ it('Check if all requested products are listed for replacement', () => {
+  // Visit the page where the input element is located
+  cy.visit('https://backoffice.stg.iqos.com/backoffice/login.zul', { failOnStatusCode: false });
+ 
+  //LOGIN - Insert your Username and Password
+  cy.get('input[placeholder="Enter user name"]:visible').type("Type your username");
+  cy.get('input[placeholder="Enter password"]:visible').type("Type your password");
+  
+  //You should end up on the Products page after this
+  cy.get('.login_btn').click()
+	.wait(30000);
+  cy.get('.yw-selector-btn').click()
+    .wait(20000);
+  cy.get('span.z-label')
+	.contains("Products")
+	.click()
+	.wait(300);
+	
+	
+  //Product 1
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(3).should('be.visible').type("G0000605",{ force: true }).wait(300);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click().wait(300);
+  cy.get('span.yw-coll-browser-hyperlink').contains("[] - IQOS ILUMA One Holder Sunset Red [G0000605] - Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem') 
+    .contains("G0000605");
+  cy.get('.z-listitem') 
+    .contains("G0000607");
+  cy.get('.z-listitem') 
+    .contains("G0000608");
+  cy.get('.z-listitem') 
+    .contains("G0000604");
+  cy.get('.z-listitem') 
+    .contains("G0000592");
+	
+	
+  //Product 2
+  cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+  cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(5).click().type("G0000606").wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('span.yw-coll-browser-hyperlink').contains("[] - IQOS ILUMA One Holder Pebbe Grey [G0000606] - Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem') 
+    .contains("G0000605");
+  cy.get('.z-listitem') 
+    .contains("G0000607");
+  cy.get('.z-listitem') 
+    .contains("G0000608");
+  cy.get('.z-listitem') 
+    .contains("G0000604");
+  cy.get('.z-listitem') 
+    .contains("G0000592");
+	
+	
+  //Product 3
+  cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+  cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(5).click().type("G0000607").wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('span.yw-coll-browser-hyperlink').contains("[] - IQOS ILUMA One Holder Moss Green [G0000607] - Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem') 
+    .contains("G0000605");
+  cy.get('.z-listitem') 
+    .contains("G0000607");
+  cy.get('.z-listitem') 
+    .contains("G0000608");
+  cy.get('.z-listitem') 
+    .contains("G0000604");
+  cy.get('.z-listitem') 
+    .contains("G0000593");
+  
+  
+  //Product 4
+  cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+  cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('.z-bandbox-input').eq(5).click().type("G0000625").wait(1000);
+  cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+  cy.get('span.yw-coll-browser-hyperlink').contains("[] - IQOS ILUMA Charger Azure Blue [G0000625] - Tunisia Product Catalog : Staged").scrollIntoView().should('be.visible').click({force:true});
+  cy.wait(5000)
+  cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+  // Check products listed for replacement by products codes
+  cy.get('.z-listitem') 
+    .contains("G0000622");
+  cy.get('.z-listitem') 
+    .contains("G0000623");
+  cy.get('.z-listitem') 
+    .contains("G0000624");
+  cy.get('.z-listitem') 
+    .contains("G0000626");
+  cy.get('.z-listitem') 
+    .contains("G0000600");
+  cy.get('.z-listitem') 
+    .contains("G0000601");
+  cy.get('.z-listitem') 
+    .contains("G0000602");
+  cy.get('.z-listitem') 
+    .contains("G0000603");
+  cy.get('.z-listitem') 
+    .contains("G0000599");
+
+ });
+});
