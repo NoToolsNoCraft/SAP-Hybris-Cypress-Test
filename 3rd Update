@@ -1,0 +1,92 @@
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // returning false here prevents Cypress from failing the test
+  return false;
+});
+
+describe('Replacement Matrix test', () => {
+  const CATALOG_LABEL = 'Tunisia Product Catalog : Staged';
+
+  beforeEach(() => {
+      // Visit the login page before each test
+      cy.visit('https://backoffice.stg.iqos.com/backoffice/login.zul', { failOnStatusCode: false }).wait(1000);
+
+      // Log in to the application
+      cy.get('input[placeholder="Enter user name"]:visible').type("type your username").wait(300);
+      cy.get('input[placeholder="Enter password"]:visible').type("type your password");
+      cy.get('.login_btn').click({ force: true }).wait(30000);
+
+      // Wait for the main page to load and Products button to be visible
+      cy.get('.yw-selector-btn').click().wait(20000);
+      cy.get('span.z-label').contains("Products").click().wait(300);
+  });
+
+  const LABELS = {
+      L1: 'CAN_BE_REPLACED_BY ->',
+      L2: 'CAN_BE_REPLACED_BY_2L ->',
+      L3: 'CAN_BE_REPLACED_BY_3L ->'
+  };
+
+  const checkProductReplacements = (productCode, replacements, isFirstSearch) => {
+      cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+
+      // Determine the correct input element to type into based on whether it's the first search
+      const inputIndex = isFirstSearch ? 3 : 5;
+      cy.get('.z-bandbox-input').eq(inputIndex).type(productCode, { force: true }).wait(300);
+
+      cy.get('.yw-fulltextsearch-search-button').eq(0).click().wait(300);
+      cy.get('span.yw-coll-browser-hyperlink').contains(CATALOG_LABEL).scrollIntoView().should('be.visible').click({ force: true });
+      cy.wait(5000);
+      cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+
+      replacements.forEach(replacement => {
+          const label = LABELS[replacement.level];
+          cy.get('.z-listitem')
+              .contains(replacement.code)
+              .should('contain', label)
+              .parent()
+              .should('contain', CATALOG_LABEL);
+      });
+
+      // Go back to the search page
+      cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+      cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+  };
+
+  // Search for the main product code and check the replacement product codes and levels
+  it('Check if all requested products are listed for replacement', () => {
+      checkProductReplacements("G0000605", [
+          { code: "G0000605", level: 'L1' },
+          { code: "G0000607", level: 'L1' },
+          { code: "G0000608", level: 'L1' },
+          { code: "G0000604", level: 'L1' },
+          { code: "G0000592", level: 'L2' }
+      ], true);
+
+      checkProductReplacements("G0000606", [
+          { code: "G0000606", level: 'L1' },
+          { code: "G0000607", level: 'L2' },
+          { code: "G0000608", level: 'L2' },
+          { code: "G0000604", level: 'L2' },
+          { code: "G0000592", level: 'L3' }
+      ], false);
+
+      checkProductReplacements("G0000607", [
+          { code: "G0000605", level: 'L2' },
+          { code: "G0000607", level: 'L1' },
+          { code: "G0000608", level: 'L2' },
+          { code: "G0000604", level: 'L2' },
+          { code: "G0000593", level: 'L3' }
+      ], false);
+
+      checkProductReplacements("G0000625", [
+          { code: "G0000622", level: 'L2' },
+          { code: "G0000623", level: 'L2' },
+          { code: "G0000624", level: 'L2' },
+          { code: "G0000626", level: 'L2' },
+          { code: "G0000600", level: 'L3' },
+          { code: "G0000601", level: 'L3' },
+          { code: "G0000602", level: 'L3' },
+          { code: "G0000599", level: 'L3' }
+      ], false);
+  });
+});
