@@ -1,0 +1,276 @@
+import { test, expect } from '@playwright/test';
+
+// Define a constant for the catalog label
+const CATALOG_LABEL = 'Tunisia Product Catalog : Staged';
+
+test.describe('Replacement Matrix test', () => {
+
+  test.beforeEach(async ({ page }) => {
+    // Increase timeout for each test if needed, since these tests doesn't depend on max time
+    test.setTimeout(600000); 
+
+    // Visit the login page before each test
+    await page.goto('https://backoffice.stg.iqos.com/backoffice/login.zul');
+    
+    // Ensure the username field is visible and then fill it
+    await page.waitForSelector('input[placeholder="Enter user name"]:visible', { timeout: 10000 });
+    await page.fill('input[placeholder="Enter user name"]:visible', 'Enter your username');
+    
+    // Ensure the password field is visible and then fill it
+    await page.waitForSelector('input[placeholder="Enter password"]:visible', { timeout: 10000 });
+    await page.fill('input[placeholder="Enter password"]:visible', 'Enter your password');
+    
+    // Wait a moment to ensure fields are filled before clicking the login button
+    await page.waitForTimeout(500);
+    await page.click('.login_btn', { force: true });
+    
+    // Wait for network to be idle after login
+    await page.waitForLoadState('networkidle'); 
+
+    // Ensure the login is successful by checking for the presence of a post-login element
+    await page.waitForSelector('.yw-selector-btn', { timeout: 30000 });
+
+    // Wait for the main page to load and Products button to be visible
+    await page.click('.yw-selector-btn');
+    
+    // Be more specific in identifying the Products element
+    await page.waitForSelector('span.z-label:visible', { timeout: 20000 });
+    await page.locator('span.z-label:visible', { hasText: 'Products' }).first().click();
+    await page.waitForTimeout(300);
+  });
+
+  const LABELS = {
+    L1: 'CAN_BE_REPLACED_BY ->',
+    L2: 'CAN_BE_REPLACED_BY_2L ->',
+    L3: 'CAN_BE_REPLACED_BY_3L ->'
+  };
+
+  const checkProductReplacements = async (page, productCode, replacements, isFirstSearch) => {
+    await page.click('.yw-fulltextsearch-search-button >> nth=0');
+
+    // Determine the correct input element to type into based on whether it's the first search
+    const inputIndex = isFirstSearch ? 3 : 5;
+    await page.fill(`.z-bandbox-input >> nth=${inputIndex}`, productCode);
+    await page.waitForTimeout(300);
+
+    await page.click('.yw-fulltextsearch-search-button >> nth=0');
+    await page.waitForTimeout(300);
+
+    const catalogLink = page.locator('span.yw-coll-browser-hyperlink', { hasText: CATALOG_LABEL });
+    await expect(catalogLink).toBeVisible({ timeout: 30000 });
+    await catalogLink.scrollIntoViewIfNeeded();
+    await catalogLink.click({ force: true });
+    await page.waitForTimeout(5000);
+    
+    // Ensure the "Categories" tab is visible before clicking it
+    const categoriesTab = page.locator('.yw-editorarea-tabbox-tabs-tab', { hasText: 'Categories' });
+    await expect(categoriesTab).toBeVisible({ timeout: 30000 });
+    await categoriesTab.scrollIntoViewIfNeeded();
+    await categoriesTab.click({ force: true });
+    await page.waitForTimeout(300);
+
+    for (const replacement of replacements) {
+      const label = LABELS[replacement.level];
+      const listItem = page.locator('.z-listitem', { hasText: replacement.code });
+      await expect(listItem).toContainText(label);
+      await expect(listItem).toContainText(CATALOG_LABEL);
+    }
+
+    // Go back to the search page
+    await page.click('.yw-navigationhistory-back >> nth=0');
+    await expect(page.locator('button[title="Clear"] >> nth=0')).toBeVisible();
+    await page.click('button[title="Clear"] >> nth=0');
+    await page.waitForTimeout(1000);
+  };
+
+  test('Check if all requested products are listed for replacement', async ({ page }) => {
+    await checkProductReplacements(page, "G0000605", [
+      { code: "G0000605", level: 'L1' },
+      { code: "G0000607", level: 'L1' },
+      { code: "G0000608", level: 'L1' },
+      { code: "G0000604", level: 'L1' },
+      { code: "G0000592", level: 'L2' }
+    ], true);
+
+    await checkProductReplacements(page, "G0000606", [
+      { code: "G0000606", level: 'L1' },
+      { code: "G0000607", level: 'L2' },
+      { code: "G0000608", level: 'L2' },
+      { code: "G0000604", level: 'L2' },
+      { code: "G0000592", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000607", [
+      { code: "G0000605", level: 'L2' },
+      { code: "G0000607", level: 'L1' },
+      { code: "G0000608", level: 'L2' },
+      { code: "G0000604", level: 'L2' },
+      { code: "G0000593", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+
+    await checkProductReplacements(page, "G0000625", [
+      { code: "G0000622", level: 'L2' },
+      { code: "G0000623", level: 'L2' },
+      { code: "G0000624", level: 'L2' },
+      { code: "G0000626", level: 'L2' },
+      { code: "G0000600", level: 'L3' },
+      { code: "G0000601", level: 'L3' },
+      { code: "G0000602", level: 'L3' },
+      { code: "G0000599", level: 'L3' }
+    ], false);
+  });
+});
