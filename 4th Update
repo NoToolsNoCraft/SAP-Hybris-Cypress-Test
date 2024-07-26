@@ -1,0 +1,111 @@
+Cypress.on('uncaught:exception', (err, runnable) => {
+    return false;
+});
+
+describe('Replacement Matrix test', () => {
+    const CATALOG_LABEL = 'Tunisia Product Catalog : Staged';
+
+    beforeEach(() => {
+        cy.visit('https://backoffice.stg.iqos.com/backoffice/login.zul', { failOnStatusCode: false }).wait(1000);
+        cy.get('input[placeholder="Enter user name"]:visible').type("YOUR USERNAME HERE").wait(300);
+        cy.get('input[placeholder="Enter password"]:visible').type("YOUR PASSWORD HERE");
+        cy.get('.login_btn').click({ force: true }).wait(30000);
+        
+        // Select a role
+        cy.get('.z-listcell-content')
+            .contains('PMI Global DCE2 Market Catalog Publisher')
+            .should('exist')
+            .click({ force: true })
+            .wait(2000);
+        cy.get('.z-listcell-content')
+            .contains('PMI Global DCE2 Market Catalog Publisher')
+            .should('exist')
+            .click({ force: true })
+            .wait(2000);
+
+        cy.get('.yw-selector-btn').click().wait(20000);
+        cy.get('span.z-label').contains("Products").click().wait(300);
+    });
+
+    const LABELS = {
+        L1: 'CAN_BE_REPLACED_BY ->',
+        L2: 'CAN_BE_REPLACED_BY_2L ->',
+        L3: 'CAN_BE_REPLACED_BY_3L ->'
+    };
+
+    const checkProductOnPage = (CATALOG_LABEL, retries = 0) => {
+        const maxRetries = 5; // Adjust this based on the maximum number of pages you expect
+
+        // Try to find the product on the current page
+        return cy.get('span.yw-coll-browser-hyperlink', { timeout: 10000 }).then(links => {
+            const productElement = links.filter(`:contains(${CATALOG_LABEL})`);
+
+            if (productElement.length) {
+                // If the product element is found
+                return cy.wrap(productElement).scrollIntoView().should('be.visible').click({ force: true });
+            } else if (retries < maxRetries) {
+                // If the product element is not found and we haven't exceeded max retries
+                return cy.get('body').then(body => {
+                    if (body.find('.z-paging-icon.z-icon-angle-right').length > 0) {
+                        // Click on the pagination button and wait for the page to update
+                        return cy.get('.z-paging-icon.z-icon-angle-right').eq(0).click({ force: true })
+                            .wait(5000) // Adjust wait time as needed
+                            .then(() => checkProductOnPage(CATALOG_LABEL, retries + 1)); // Recurse with increased retry count
+                    } else {
+                        throw new Error('Reached the last page and product not found');
+                    }
+                });
+            } else {
+                throw new Error('Product not found after maximum retries');
+            }
+        });
+    };
+
+    const checkProductReplacements = (productCode, replacements, isFirstSearch) => {
+        cy.get('.yw-fulltextsearch-search-button').eq(0).click();
+
+        // Determine the correct input element to type into based on whether it's the first search
+        const inputIndex = isFirstSearch ? 3 : 5;
+        cy.get('.z-bandbox-input').eq(inputIndex).type(productCode, { force: true }).wait(300);
+
+        cy.get('.yw-fulltextsearch-search-button').eq(0).click().wait(3000);
+
+        return checkProductOnPage(CATALOG_LABEL).then(() => {
+            cy.wait(5000);
+            cy.get('.yw-editorarea-tabbox-tabs-tab').contains("Categories").click().wait(300);
+
+            // Use cy.then to properly chain the commands
+            cy.then(() => {
+                replacements.forEach(replacement => {
+                    const label = LABELS[replacement.level];
+                    cy.get('.z-listitem')
+                        .contains(replacement.code)
+                        .should('contain', label)
+                        .parent()
+                        .should('contain', CATALOG_LABEL);
+                });
+
+                cy.get('.yw-navigationhistory-back').eq(0).should('be.visible').click({ force: true });
+                cy.get('button[title="Clear"]').eq(0).click().wait(1000);
+            });
+        });
+    };
+
+    it('should test the replacement matrix', () => {
+        checkProductReplacements("G0000605", [
+            { code: "G0000605", level: 'L1' },
+            { code: "G0000592", level: 'L2' },
+            { code: "G0000604", level: 'L1' }
+        ], true);
+        checkProductReplacements("G0000606", [
+            { code: "G0000606", level: 'L1' },
+            { code: "G0000592", level: 'L3' },
+            { code: "G0000604", level: 'L2' }
+        ], false);
+        checkProductReplacements("G0000607", [
+            { code: "G0000607", level: 'L1' },
+            { code: "G0000605", level: 'L2' },
+            { code: "G0000593", level: 'L3' }
+        ], false);
+    });
+});
