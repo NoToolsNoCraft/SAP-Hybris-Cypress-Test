@@ -38,7 +38,9 @@ describe('Replacement Matrix test', () => {
 
         // Try to find the product on the current page
         return cy.get('span.yw-coll-browser-hyperlink', { timeout: 10000 }).then(links => {
-            const productElement = links.filter(`:contains(${CATALOG_LABEL})`);
+            const productElement = links.filter((index, element) => {
+              return Cypress.$(element).text().includes(CATALOG_LABEL);
+          });
 
             if (productElement.length) {
                 // If the product element is found
