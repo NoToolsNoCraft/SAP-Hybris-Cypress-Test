@@ -1,5 +1,2 @@
-I've created these Cypress scripts for testing of product replacement inside of SAP Hybris. It was made during my engagement with Phillip Morris International. 
-This feature used to be done manually by testers. 
-These scripts basically simulates the steps the tester manually goes through, although Cypress does it more efficient, with less human-errors (related to the not most friendly user-interface of SAP products) and obviously much faster.
-Every new updated version I've updated in a newer version. Currently we are using the version 4 template.
-For my manual tester colleagues I have created an app that generates the Cypress script without they having to directly modify the code. You may check out the app here: https://notoolsnocraft.tech/Product-Replacement-Test-Script-Generator/
+I wrote these Cypress scripts to test product substitution within SAP Hybris. It was created during my tenure at Phillip Morris International. Previously, testers performed this function manually. These scripts effectively duplicate the processes that the tester would take manually, but Cypress performs it more efficiently, with less human mistakes (because to the unfriendly user interface of SAP products), and much quicker. I've updated each new version with a newer version. We are currently utilizing the Version 4 template. For my manual tester colleagues, I designed an app that creates the Cypress script without requiring them to directly alter the code. 
+You may check out the app here: https://notoolsnocraft.tech/Product-Replacement-Test-Script-Generator/
